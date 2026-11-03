@@ -1,0 +1,7 @@
+:load *MyLib *AST Parser.PExpression 
+:set -XOverloadedStrings
+:m + Text.Megaparsec 
+:m + Text.Megaparsec.Char 
+:m + Text.Megaparsec.Char.Lexer  
+:m + Data.Void 
+:m + Parser.PExpression
