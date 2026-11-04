@@ -62,7 +62,8 @@ library
     exposed-modules:  
         MyLib,
         AST,
-        Parser.PExpression
+        Parser.PExpression,
+        Parser.PStatement
 
     -- Modules included in this library but not exported.
     other-modules:
