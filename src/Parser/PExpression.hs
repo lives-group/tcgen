@@ -8,21 +8,6 @@ import Control.Monad.Combinators.Expr
 import Parser.PCommon
 import AST
 
-stringLiteral :: Parser String
-stringLiteral = singleQuoted <|> doubleQuoted
-        where 
-                singleQuoted = char '\'' *> manyTill L.charLiteral (char '\'')
-                doubleQuoted = char '"' *> manyTill L.charLiteral (char '"')
-
-identifier :: Parser String
-identifier = ((:) <$> fstVarChar <*> many leftVarChars)
-        where
-                fstVarChar = (letterChar <|> char '_')
-                leftVarChars = (alphaNumChar <|> char '_')
-
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
-
 pKeyWord :: String -> Parser String
 pKeyWord keyword = lexeme $ try (string keyword <* notFollowedBy (alphaNumChar <|> char '_'))
 
@@ -38,15 +23,7 @@ pBoolLiteral = LitBool <$> lexeme boolLiteral
                 boolLiteral = choice [True <$ pKeyWord "True", False <$ pKeyWord "False"]
 
 pVar :: Parser Expr
-pVar = Var <$> lexeme (try name)
-        where
-                name = do
-                        i <- identifier <?> "identifier"
-                        if i `elem` reservedWords
-                        then
-                                fail ("keyword " ++ i ++ " cannot be an identifier")
-                        else
-                                return i
+pVar = Var <$> pIdentifier
 
 pTerm :: Parser Expr
 pTerm = choice

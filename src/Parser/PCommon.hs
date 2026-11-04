@@ -21,3 +21,29 @@ lexeme = L.lexeme sc
 
 symbol :: String -> Parser String
 symbol = L.symbol sc
+
+parens :: Parser a -> Parser a
+parens = between (symbol "(") (symbol ")")
+
+identifier :: Parser String
+identifier = ((:) <$> fstVarChar <*> many leftVarChars)
+        where
+                fstVarChar = (letterChar <|> char '_')
+                leftVarChars = (alphaNumChar <|> char '_')
+
+stringLiteral :: Parser String
+stringLiteral = singleQuoted <|> doubleQuoted
+        where 
+                singleQuoted = char '\'' *> manyTill L.charLiteral (char '\'')
+                doubleQuoted = char '"' *> manyTill L.charLiteral (char '"')
+
+pIdentifier :: Parser String
+pIdentifier = lexeme (try name)
+        where
+                name = do
+                        i <- identifier <?> "identifier"
+                        if i `elem` reservedWords
+                        then
+                                fail ("keyword " ++ i ++ " cannot be an identifier")
+                        else
+                                return i
