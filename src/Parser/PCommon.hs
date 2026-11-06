@@ -10,11 +10,18 @@ type Parser = Parsec Void String
 reservedWords :: [String]
 reservedWords = ["True", "False", "None", "print", "if", "else", "while", "def", "return"]
 
+lineComment :: Parser ()
+lineComment = L.skipLineComment "#"
+
+blockComment :: Parser ()
+blockComment = L.skipBlockComment "'''" "'''"
+
+-- Do not consume carriage return ('\r') and newline ('\n') chars
 sc :: Parser ()
-sc = L.space
-        space1
-        (L.skipLineComment "#")
-        (L.skipBlockComment "'''" "'''")
+sc = L.space hspace1 lineComment blockComment
+
+scn :: Parser ()
+scn = L.space space1 lineComment blockComment
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
