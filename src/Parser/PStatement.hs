@@ -54,4 +54,4 @@ pDef = L.indentBlock scn $ do
     return (L.IndentSome Nothing (\defStmts -> return (Def defName parameters defStmts)) pStmt)
 
 pStmt :: Parser Stmt
-pStmt = choice [pAssign, pDef, pIf, pWhile, pPrint, pExprStmt]
+pStmt = choice [try pAssign, pDef, pIf, pWhile, pPrint, pExprStmt]
