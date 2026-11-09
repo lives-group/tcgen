@@ -63,7 +63,8 @@ library
         MyLib,
         AST,
         Parser.PExpression,
-        Parser.PStatement
+        Parser.PStatement,
+        Parser.Parser
 
     -- Modules included in this library but not exported.
     other-modules:
