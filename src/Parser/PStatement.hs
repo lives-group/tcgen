@@ -29,11 +29,20 @@ pIf :: Parser Stmt
 pIf = do
     ifColumnPos <- L.indentLevel
     (conditionExpr, ifBody) <- indented (pKeyWord "if" *> pExpr)
-    elseBody <- option [] (try $ pElse ifColumnPos)
+    elseBody <- pElseChain ifColumnPos
     return (If conditionExpr ifBody elseBody)
+
+pElif :: Pos -> Parser Stmt
+pElif col = do
+    (conditionExpr, elifBody) <- indented (L.indentGuard scn EQ col *> pKeyWord "elif" *> pExpr)
+    elseBody <- pElseChain col
+    return (If conditionExpr elifBody elseBody)
 
 pElse :: Pos -> Parser [Stmt]
 pElse col = snd <$> indented (L.indentGuard scn EQ col *> pKeyWord "else")
+
+pElseChain :: Pos -> Parser [Stmt]
+pElseChain col = option [] (try (pure <$> pElif col) <|> try (pElse col))
 
 pWhile :: Parser Stmt
 pWhile = do
