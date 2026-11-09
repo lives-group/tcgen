@@ -20,38 +20,33 @@ pAssign = do
 pExprStmt :: Parser Stmt
 pExprStmt = ExprStmt <$> pExpr
 
+indented :: Parser a -> Parser (a, [Stmt])
+indented pHeader = L.indentBlock scn $ do
+    h <- pHeader <* symbol ":"
+    return (L.IndentSome Nothing (\block -> return (h, block)) pStmt)
+
 pIf :: Parser Stmt
 pIf = do
     ifColumnPos <- L.indentLevel
-    (ifBody, conditionExpr) <- p'If
-    elseBody <- option [] (try $ p'Else ifColumnPos)
+    (conditionExpr, ifBody) <- indented (pKeyWord "if" *> pExpr)
+    elseBody <- option [] (try $ pElse ifColumnPos)
     return (If conditionExpr ifBody elseBody)
 
-    where
-        p'If = L.indentBlock scn $ do
-            void (pKeyWord "if")
-            conditionExpr <- pExpr
-            void (symbol ":")
-            return (L.IndentSome Nothing (\ifStmts -> return (ifStmts, conditionExpr)) pStmt)
-        p'Else ifColumnPos = L.indentBlock scn $ do
-            void (L.indentGuard scn EQ ifColumnPos)
-            void (pKeyWord "else" >> symbol ":")
-            return (L.IndentSome Nothing return pStmt)
+pElse :: Pos -> Parser [Stmt]
+pElse col = snd <$> indented (L.indentGuard scn EQ col *> pKeyWord "else")
 
 pWhile :: Parser Stmt
-pWhile = L.indentBlock scn $ do
-    void (pKeyWord "while")
-    conditionExpr <- pExpr
-    void (symbol ":")
-    return (L.IndentSome Nothing (\whileStmts -> return (While conditionExpr whileStmts)) pStmt)
+pWhile = do
+    (conditionExpr, whileBody) <- indented (pKeyWord "while" *> pExpr)
+    return (While conditionExpr whileBody)
 
 pDef :: Parser Stmt
-pDef = L.indentBlock scn $ do
-    void (pKeyWord "def")
-    defName <- pIdentifier
-    parameters <- parens (pIdentifier `sepBy` symbol ",")
-    void (symbol ":")
-    return (L.IndentSome Nothing (\defStmts -> return (Def defName parameters defStmts)) pStmt)
+pDef = do
+    let
+        header = (,) <$> (pKeyWord "def" *> pIdentifier)
+                     <*> (parens (pIdentifier `sepBy` symbol ","))
+    ((defName, parameters), defBody) <- indented header
+    return (Def defName parameters defBody)
 
 pStmt :: Parser Stmt
 pStmt = choice [try pAssign, pDef, pIf, pWhile, pPrint, pExprStmt]
