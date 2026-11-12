@@ -8,7 +8,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 type Parser = Parsec Void String
 
 reservedWords :: [String]
-reservedWords = ["True", "False", "None", "print", "if", "else", "while", "def", "return"]
+reservedWords = ["True", "False", "None", "print", "if", "else", "while", "def", "return", "not", "and", "or"]
 
 lineComment :: Parser ()
 lineComment = L.skipLineComment "#"
